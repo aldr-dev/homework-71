@@ -13,3 +13,8 @@ export interface ApiDishFormMutation {
 export interface ApiDishes extends ApiDishFormMutation {
  id: string
 }
+
+export interface CartDish {
+  dish: ApiDishes;
+  amount: number;
+}

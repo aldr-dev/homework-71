@@ -25,9 +25,13 @@ const DishForm = () => {
 
   useEffect(() => {
     if (oneDish && id) {
-      setDishData({
-        ...oneDish,
-        price: oneDish.price.toString(),
+      setDishData((prevState) => {
+        return {
+          ...prevState,
+          title: oneDish.title,
+          price: oneDish.price.toString(),
+          image: oneDish.image,
+        };
       });
     } else {
       setDishData(initialState);
@@ -73,7 +77,7 @@ const DishForm = () => {
           await dispatch(updateFormData({id, dishDataMutation})).unwrap();
           navigate('/admin/dishes');
         } else {
-         await dispatch(postFormData(dishDataMutation)).unwrap();
+          await dispatch(postFormData(dishDataMutation)).unwrap();
 
           setDishData({
             title: '',
