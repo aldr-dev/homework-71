@@ -8,7 +8,7 @@ const Navbar = () => {
       <nav className="navbar bg-black">
         <div className="container-xxl">
           <NavLink
-            to="/"
+            to={location.pathname === '/' ? '/' : '/admin'}
             className="navbar-brand text-white fs-3">
             {location.pathname === '/' ? 'Turtle Pizza' : 'Turtle Pizza Admin'}
           </NavLink>
