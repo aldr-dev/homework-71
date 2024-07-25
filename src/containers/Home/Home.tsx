@@ -10,11 +10,9 @@ import Spinner from '../../components/Spinner/Spinner';
 
 const Home = () => {
   const dispatch = useAppDispatch();
-  const dishData = useAppSelector(selectDishesData);
   const getDataLoading = useAppSelector(selectGetDataLoading);
+  const dishesData = useAppSelector(selectDishesData);
   const total = useAppSelector(selectTotal);
-
-
 
   useEffect(() => {
     dispatch(getDishesData());
@@ -22,12 +20,15 @@ const Home = () => {
 
   return (
     <Layout>
+      {dishesData.length === 0 && !getDataLoading && (
+        <p>The list of dishes is empty. We will update the information soon!</p>
+      )}
       {getDataLoading ? (
         <Spinner/>
       ) : (
         <>
           {total > 0 ? (<Checkout total={total}/>) : null}
-          {dishData.map((dish) => (
+          {dishesData.map((dish) => (
             <CardUserDishes key={dish.id} dish={dish}/>
           ))}
         </>
