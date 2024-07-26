@@ -1,7 +1,7 @@
 import {createAsyncThunk} from '@reduxjs/toolkit';
 import axiosApi from '../../axiosApi';
 import {RootState} from '../../app/store';
-import {ApiDishes, ApiDishFormMutation} from '../../types';
+import {ApiDishes, ApiDishFormMutation, ApiOrdersInfo} from '../../types';
 
 export const postFormData = createAsyncThunk<void, ApiDishFormMutation, {state: RootState}>(
   'admin/postFormData', async (data: ApiDishFormMutation) => {
@@ -46,3 +46,21 @@ export const getDishesData =
       }
     }
   );
+
+export const getOrdersInfo = createAsyncThunk<ApiOrdersInfo | null, void, {state: RootState}>(
+  'admin/getOrdersInfo', async () => {
+   const response = await axiosApi.get<ApiOrdersInfo | null>('/orders.json');
+
+   if (response.data !== null) {
+     return response.data;
+   } else {
+     return null;
+   }
+  }
+);
+
+export const deleteOrderItem = createAsyncThunk<void, string, {state: RootState}>(
+  'admin/deleteOrderItem', async (id: string) => {
+    await axiosApi.delete<ApiOrdersInfo>(`/orders/${id}.json`);
+  }
+);

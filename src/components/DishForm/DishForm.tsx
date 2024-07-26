@@ -78,6 +78,7 @@ const DishForm = () => {
           navigate('/admin/dishes');
         } else {
           await dispatch(postFormData(dishDataMutation)).unwrap();
+          navigate('/admin/dishes');
 
           setDishData({
             title: '',

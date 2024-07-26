@@ -1,9 +1,18 @@
-import {ApiDishes, ApiDishFormMutation} from '../../types';
+import {ApiDishes, ApiDishFormMutation, ApiOrdersInfo, CartDish, OrderList} from '../../types';
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {deleteOneDish, getDishesData, getFormData, postFormData, updateFormData} from './adminThunks';
+import {
+  deleteOneDish,
+  deleteOrderItem,
+  getDishesData,
+  getFormData,
+  getOrdersInfo,
+  postFormData,
+  updateFormData
+} from './adminThunks';
 
 export interface AdminState {
   dishesData: ApiDishes [];
+  ordersData: OrderList [];
   oneDish: null | ApiDishFormMutation;
   buttonIsLoading: boolean | string;
   getDataLoading: boolean;
@@ -11,6 +20,7 @@ export interface AdminState {
 
 const initialState: AdminState  = {
   dishesData: [],
+  ordersData: [],
   oneDish: null,
   buttonIsLoading: false,
   getDataLoading: false,
@@ -22,6 +32,9 @@ const adminSlice = createSlice({
   reducers: {
     updateStateDishesData: (state: AdminState, {payload: id}: PayloadAction<string>) => {
       state.dishesData = state.dishesData.filter((item) => item.id !== id);
+    },
+    updateStateOrdersData: (state: AdminState, {payload: id}: PayloadAction<string>) => {
+      state.ordersData = state.ordersData.filter((item) => item.id !== id);
     }
   },
   extraReducers: (builder) => {
@@ -80,20 +93,67 @@ const adminSlice = createSlice({
     builder.addCase(getDishesData.rejected, (state: AdminState ) => {
       state.getDataLoading = false;
     });
+
+    builder.addCase(getOrdersInfo.pending, (state: AdminState ) => {
+      state.getDataLoading = true;
+    });
+    builder.addCase(getOrdersInfo.fulfilled, (state: AdminState, { payload: orders }: PayloadAction<ApiOrdersInfo | null>) => {
+      state.getDataLoading = false;
+      if (orders !== null) {
+        state.ordersData = Object.keys(orders).map(orderId => {
+          const order = orders[orderId];
+          const orderDishes: CartDish[] = [];
+          let totalCost = 0;
+
+          state.dishesData.forEach(dish => {
+            const amount = order[dish.id];
+            if (amount) {
+              const cost = dish.price * amount;
+              totalCost += cost;
+              orderDishes.push({
+                dish: dish,
+                amount: amount,
+              });
+            }
+          });
+
+          return {
+            id: orderId,
+            dishes: orderDishes,
+            totalCost: totalCost,
+          };
+        });
+      }
+    });
+    builder.addCase(getOrdersInfo.rejected, (state: AdminState ) => {
+      state.getDataLoading = false;
+    });
+
+    builder.addCase(deleteOrderItem.pending, (state: AdminState, {meta: {arg: dishId }}) => {
+      state.buttonIsLoading = dishId;
+    });
+    builder.addCase(deleteOrderItem.fulfilled, (state: AdminState) => {
+      state.buttonIsLoading = false;
+    });
+    builder.addCase(deleteOrderItem.rejected, (state: AdminState ) => {
+      state.buttonIsLoading = false;
+    });
   },
   selectors: {
     selectDishesData: (state: AdminState) => state.dishesData,
     selectOneDish: (state: AdminState) => state.oneDish,
     selectButtonIsLoading: (state: AdminState) => state.buttonIsLoading,
     selectGetDataLoading: (state: AdminState) => state.getDataLoading,
+    selectOrdersData: (state: AdminState) => state.ordersData,
   }
 });
 
 export const adminReducer = adminSlice.reducer;
-export const {updateStateDishesData} = adminSlice.actions;
+export const {updateStateDishesData, updateStateOrdersData} = adminSlice.actions;
 export const {
   selectDishesData,
   selectOneDish,
   selectButtonIsLoading,
   selectGetDataLoading,
+  selectOrdersData,
 } = adminSlice.selectors;

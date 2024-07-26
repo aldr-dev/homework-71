@@ -22,3 +22,13 @@ export interface CartDish {
 export interface OrderInfo {
   [id: string]: number;
 }
+
+export interface ApiOrdersInfo {
+  [id: string]: OrderInfo;
+}
+
+export interface OrderList {
+  id: string;
+  dishes: CartDish[];
+  totalCost: number;
+}
