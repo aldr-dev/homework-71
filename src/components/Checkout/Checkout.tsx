@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Modal from '../Modal/Modal';
 import {useAppDispatch, useAppSelector} from '../../app/hooks';
-import {clearTotalPrice, deleteDishItem, selectCartDishes} from '../../store/cart/cartSlice';
+import {clearCart, clearTotalPrice, deleteDishItem, selectCartDishes, totalPrice} from '../../store/cart/cartSlice';
+import {CartDish} from '../../types';
 
 interface Props {
   total: number;
@@ -16,10 +17,17 @@ const Checkout: React.FC<Props> = ({total}) => {
     setShowModal(status);
   };
 
-  const handleClickCancelButton = () => {
-    handleClickModal(false);
-    dispatch(clearTotalPrice());
+  const handleDeleteDish = (dishItem: CartDish) => {
+    dispatch(deleteDishItem(dishItem.dish));
+    dispatch(totalPrice());
   };
+
+  useEffect(() => {
+    if (cartDishes.length === 0) {
+      dispatch(clearCart());
+      dispatch(clearTotalPrice());
+    }
+  }, [dispatch, cartDishes]);
 
   return (
     <>
@@ -30,49 +38,46 @@ const Checkout: React.FC<Props> = ({total}) => {
         </div>
       </div>
 
-      <Modal showModal={showModal} title="Your order:" onClose={handleClickModal}>
-        <div className="modal-body">
-          {cartDishes.length > 0 ? (
-            <>
-              {cartDishes.map((dishItem) => (
-                <div key={dishItem.dish.id}>
-                  <div className="d-flex align-items-center">
-                    <span className="col-6">{dishItem.dish.title} <span
-                      className="fw-medium">&nbsp;x {dishItem.amount}</span></span>
-                    <strong className="col-5 text-end">{dishItem.amount * dishItem.dish.price} KGS</strong>
-                    <button
-                      onClick={() => dispatch(deleteDishItem(dishItem.dish))}
-                      className="border-0 bg-transparent p-0 text-end col-1"
-                      type="button">
-                      <i className="bi fs-4 bi-trash-fill"></i>
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <div className="mt-4 d-flex flex-column">
-                <div className="d-flex justify-content-between mb-1">
-                  <span>Delivery:</span>
-                  <strong>150 KGS</strong>
-                </div>
-                <div className="d-flex justify-content-between">
-                  <strong>Total:</strong>
-                  <strong>{total} KGS</strong>
+      {cartDishes.length !== 0 && (
+        <Modal showModal={showModal} title="Your order:" onClose={() => handleClickModal(false)}>
+          <div className="modal-body">
+            {cartDishes.map((dishItem) => (
+              <div key={dishItem.dish.id}>
+                <div className="d-flex align-items-center">
+                <span className="col-6">{dishItem.dish.title} <span
+                  className="fw-medium">&nbsp;x {dishItem.amount}</span></span>
+                  <strong className="col-5 text-end">{dishItem.amount * dishItem.dish.price} KGS</strong>
+                  <button
+                    onClick={() => handleDeleteDish(dishItem)}
+                    className="border-0 bg-transparent p-0 text-end col-1"
+                    type="button">
+                    <i className="bi fs-4 bi-trash-fill"></i>
+                  </button>
                 </div>
               </div>
-            </>
-          ) : (<p>Cart is empty, add something!</p>)}
-        </div>
-        <div className="modal-footer">
-          {cartDishes.length > 0 ? (
-            <>
-              <button onClick={handleClickCancelButton} type="button" className="btn btn-danger w-25" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" className="btn btn-primary w-25">Order</button>
-            </>
-          ) : (
-            <button onClick={handleClickCancelButton} type="button" className="btn btn-primary w-25" data-bs-dismiss="modal">Close</button>
-          )}
-        </div>
-      </Modal>
+            ))}
+            <div className="mt-4 d-flex flex-column">
+              <div className="d-flex justify-content-between mb-1">
+                <span>Delivery:</span>
+                <strong>150 KGS</strong>
+              </div>
+              <div className="d-flex justify-content-between">
+                <strong>Total:</strong>
+                <strong>{total} KGS</strong>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button
+              onClick={() => handleClickModal(false)}
+              type="button"
+              className="btn btn-danger w-25"
+              data-bs-dismiss="modal">Cancel
+            </button>
+            <button type="button" className="btn btn-primary w-25">Order</button>
+          </div>
+        </Modal>
+      )}
     </>
   );
 };
