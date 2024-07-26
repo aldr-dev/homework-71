@@ -1,8 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import Modal from '../Modal/Modal';
 import {useAppDispatch, useAppSelector} from '../../app/hooks';
-import {clearCart, clearTotalPrice, deleteDishItem, selectCartDishes, totalPrice} from '../../store/cart/cartSlice';
-import {CartDish} from '../../types';
+import {
+  clearCart,
+  clearTotalPrice,
+  deleteDishItem,
+  selectButtonIsLoading,
+  selectCartDishes,
+  totalPrice
+} from '../../store/cart/cartSlice';
+import {CartDish, OrderInfo} from '../../types';
+import {postOrderInfo} from '../../store/cart/cartThunks';
+import {toast} from 'react-toastify';
+import ButtonSpinner from '../Spinner/ButtonSpinner';
 
 interface Props {
   total: number;
@@ -11,7 +21,26 @@ interface Props {
 const Checkout: React.FC<Props> = ({total}) => {
   const [showModal, setShowModal] = useState(false);
   const cartDishes = useAppSelector(selectCartDishes);
+  const buttonIsLoading = useAppSelector(selectButtonIsLoading);
   const dispatch = useAppDispatch();
+
+  const newOrder = cartDishes.reduce<OrderInfo>((acc,CardDish) => {
+      acc[CardDish.dish.id] = CardDish.amount;
+      return acc;
+  }, {});
+
+  const handlePostNewOrder = async () => {
+    try {
+      await dispatch(postOrderInfo(newOrder)).unwrap();
+      dispatch(clearCart());
+      dispatch(clearTotalPrice());
+      handleClickModal(false);
+      toast.success('The order has been successfully created. They took me to the kitchen.');
+    } catch (error) {
+      toast.error('An unexpected error occurred, please try again later.');
+      console.error('An unexpected error occurred, please try again later.');
+    }
+  };
 
   const handleClickModal = (status: boolean) => {
     setShowModal(status);
@@ -74,7 +103,9 @@ const Checkout: React.FC<Props> = ({total}) => {
               className="btn btn-danger w-25"
               data-bs-dismiss="modal">Cancel
             </button>
-            <button type="button" className="btn btn-primary w-25">Order</button>
+            <button onClick={handlePostNewOrder} disabled={buttonIsLoading} type="button" className="btn btn-primary w-25">
+              {buttonIsLoading ? (<ButtonSpinner />) : null} Order
+            </button>
           </div>
         </Modal>
       )}

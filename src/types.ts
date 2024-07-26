@@ -18,3 +18,7 @@ export interface CartDish {
   dish: ApiDishes;
   amount: number;
 }
+
+export interface OrderInfo {
+  [id: string]: number;
+}

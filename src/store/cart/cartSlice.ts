@@ -1,5 +1,6 @@
 import {ApiDishes, CartDish} from '../../types';
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {postOrderInfo} from './cartThunks';
 
 interface CartState {
   cartDishes: CartDish[];
@@ -48,9 +49,21 @@ const cartSlice = createSlice({
       state.cartDishes = [];
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(postOrderInfo.pending, (state: CartState) => {
+      state.buttonIsLoading = true;
+    });
+    builder.addCase(postOrderInfo.fulfilled, (state: CartState) => {
+      state.buttonIsLoading = false;
+    });
+    builder.addCase(postOrderInfo.rejected, (state: CartState) => {
+      state.buttonIsLoading = false;
+    });
+  },
   selectors: {
     selectTotal: (state: CartState) => state.total,
     selectCartDishes: (state: CartState) => state.cartDishes,
+    selectButtonIsLoading: (state: CartState) => state.buttonIsLoading,
   }
 });
 
@@ -65,4 +78,5 @@ export const {
 export const {
   selectTotal,
   selectCartDishes,
+  selectButtonIsLoading,
 } = cartSlice.selectors;
